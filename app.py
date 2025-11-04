@@ -5,7 +5,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# 🔗 Conexão com o banco do Supabase
+# 🔗 Conexão com o banco Supabase
 conn = psycopg2.connect(
     host="db.zzloppdbpvhpumsnhbuq.supabase.co",
     database="postgres",
@@ -14,7 +14,7 @@ conn = psycopg2.connect(
     port="5432"
 )
 
-# 🧾 Listar todos os itens do estoque
+# 🧾 Listar todos os itens
 @app.route('/itens', methods=['GET'])
 def listar_itens():
     cur = conn.cursor()
@@ -49,7 +49,19 @@ def adicionar_item():
     cur.close()
     return jsonify({"id": new_id, "message": "Item adicionado com sucesso!"})
 
-# ⬆️ Entrada de item
+# 🗑️ Deletar item
+@app.route('/itens/<int:item_id>', methods=['DELETE'])
+def deletar_item(item_id):
+    cur = conn.cursor()
+    # Primeiro remove movimentações ligadas ao item
+    cur.execute("DELETE FROM movimentacoes WHERE item_id = %s;", (item_id,))
+    # Depois remove o item
+    cur.execute("DELETE FROM itens WHERE id = %s;", (item_id,))
+    conn.commit()
+    cur.close()
+    return jsonify({"message": "Item excluído com sucesso!"})
+
+# ⬆️ Registrar entrada
 @app.route('/entrada', methods=['POST'])
 def entrada():
     data = request.get_json()
@@ -60,7 +72,7 @@ def entrada():
     cur.close()
     return jsonify({"message": "Entrada registrada!"})
 
-# ⬇️ Saída de item
+# ⬇️ Registrar saída
 @app.route('/saida', methods=['POST'])
 def saida():
     data = request.get_json()
@@ -71,6 +83,6 @@ def saida():
     cur.close()
     return jsonify({"message": "Saída registrada!"})
 
-# 🚀 Rodar o servidor
+# 🚀 Rodar servidor
 if __name__ == '__main__':
     app.run(debug=True)
