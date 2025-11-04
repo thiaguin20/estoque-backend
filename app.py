@@ -1,19 +1,17 @@
+import socket
+
+# ⚙️ Forçar IPv4 antes de importar qualquer biblioteca que use rede
+original_getaddrinfo = socket.getaddrinfo
+def getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
+    return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+socket.getaddrinfo = getaddrinfo_ipv4
+
 from flask import Flask, request, jsonify
 import psycopg2
 from flask_cors import CORS
-import socket
 
 app = Flask(__name__)
 CORS(app)
-
-# ⚙️ Forçar conexão IPv4 (corrige erro "Network is unreachable" no Render)
-def connect_ipv4():
-    original_getaddrinfo = socket.getaddrinfo
-    def getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
-        return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
-    socket.getaddrinfo = getaddrinfo_ipv4
-
-connect_ipv4()
 
 # 🔗 Conexão com o banco Supabase
 conn = psycopg2.connect(
