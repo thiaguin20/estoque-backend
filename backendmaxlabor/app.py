@@ -71,6 +71,19 @@ def saida():
     cur.close()
     return jsonify({"message": "Saída registrada!"})
 
+@app.route('/itens/<int:item_id>', methods=['DELETE'])
+def delete_item(item_id):
+    cur = conn.cursor()
+    # remove movimentações relacionadas (opcional, evita FK)
+    cur.execute("DELETE FROM movimentacoes WHERE item_id = %s;", (item_id,))
+    # remove o item
+    cur.execute("DELETE FROM itens WHERE id = %s;", (item_id,))
+    conn.commit()
+    cur.close()
+    return jsonify({"message": "Item excluído"}), 200
+
+
 # 🚀 Rodar o servidor
 if __name__ == '__main__':
     app.run(debug=True)
+
